@@ -1,0 +1,16 @@
+version: "3.9"
+services:
+  server:
+    container_name: server
+    image: server
+    env_file:
+      - .env
+    build:
+      context: .
+      dockerfile: build/Dockerfile
+    networks:
+      - client-server-api
+    ports:
+      - "8080:8080"
+networks:
+  client-server-api:
