@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"database/sql"
+	"os"
 
 	_ "github.com/caarlos0/env"
 	_ "github.com/mattn/go-sqlite3"
@@ -24,6 +25,13 @@ type (
 )
 
 func New(ctx context.Context, cfg Config) (*Client, error) {
+	if _, err := os.Stat(cfg.File); os.IsNotExist(err) {
+		file, err := os.Create(cfg.File)
+		if err != nil {
+			log.Fatal(err)
+		}
+		file.Close()
+	}
 
 	db, err := sql.Open("sqlite3", cfg.File)
 	if err != nil {

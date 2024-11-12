@@ -17,16 +17,10 @@ const (
 	TimeoutMS    = 300 * time.Millisecond
 )
 
-type (
-	errResponse struct {
-		Code string `json:"code"`
-	}
-
-	successfullyResponse struct {
-		Err   *string `json:"err"`
-		Value *string `json:"value"`
-	}
-)
+type Response struct {
+	Err   *string `json:"err"`
+	Value *string `json:"value"`
+}
 
 func main() {
 	ctx := context.Background()
@@ -44,7 +38,7 @@ func main() {
 		return
 	}
 
-	resJson := successfullyResponse{}
+	resJson := Response{}
 	err = json.Unmarshal(body, &resJson)
 	if err != nil {
 		log.Println(err)
