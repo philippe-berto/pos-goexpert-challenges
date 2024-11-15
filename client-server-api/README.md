@@ -1,8 +1,8 @@
-## Full Cycle - Post Graduate Lato Sensu - Advanced Development in Go
+## Client-server-api Challenge
 
 ### Key words
 
-Go, Golang, API, sqlite3, go-chi, context, testing, mockgen.
+go, golang, API, sqlite3, go-chi, context, contextWithTimeout, testing, mockgen.
 
 ### Running
 
