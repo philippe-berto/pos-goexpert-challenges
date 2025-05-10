@@ -2,9 +2,11 @@ package usecase
 
 import (
 	"context"
-	mydb "server/database"
-	"server/quotes/repository"
 	"testing"
+
+	"github.com/philippe-berto/pos-goexpert-challenges/client-server-api/server/quotes/repository"
+
+	mydb "github.com/philippe-berto/pos-goexpert-challenges/client-server-api/server/database"
 
 	"github.com/stretchr/testify/assert"
 )

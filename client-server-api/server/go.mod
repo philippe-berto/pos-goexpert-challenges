@@ -1,4 +1,4 @@
-module server
+module github.com/philippe-berto/pos-goexpert-challenges/client-server-api/server
 
 go 1.22.3
 

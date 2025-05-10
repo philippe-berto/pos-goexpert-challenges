@@ -4,8 +4,9 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	q "server/quotes"
 	"time"
+
+	q "github.com/philippe-berto/pos-goexpert-challenges/client-server-api/server/quotes"
 )
 
 const TimeoutError = "DB_OPERATION_TIMEOUT"

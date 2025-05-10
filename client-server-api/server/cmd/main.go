@@ -4,10 +4,11 @@ import (
 	"context"
 	"log"
 	"net/http"
-	mydb "server/database"
-	httpserver "server/http"
-	"server/quotes/repository"
-	"server/quotes/usecase"
+
+	mydb "github.com/philippe-berto/pos-goexpert-challenges/client-server-api/server/database"
+	httpserver "github.com/philippe-berto/pos-goexpert-challenges/client-server-api/server/http"
+	"github.com/philippe-berto/pos-goexpert-challenges/client-server-api/server/quotes/repository"
+	"github.com/philippe-berto/pos-goexpert-challenges/client-server-api/server/quotes/usecase"
 
 	"github.com/caarlos0/env/v10"
 	"github.com/joho/godotenv"

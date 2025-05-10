@@ -8,9 +8,11 @@ import (
 	"io"
 	"log"
 	"net/http"
-	q "server/quotes"
-	"server/quotes/repository"
 	"time"
+
+	"github.com/philippe-berto/pos-goexpert-challenges/client-server-api/server/quotes/repository"
+
+	q "github.com/philippe-berto/pos-goexpert-challenges/client-server-api/server/quotes"
 )
 
 const (

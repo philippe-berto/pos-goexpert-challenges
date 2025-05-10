@@ -4,7 +4,8 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
-	"server/quotes/usecase"
+
+	"github.com/philippe-berto/pos-goexpert-challenges/client-server-api/server/quotes/usecase"
 
 	"github.com/go-chi/chi/v5"
 )

@@ -5,8 +5,9 @@ import (
 	"log"
 	"net/http"
 	"net/http/httptest"
-	"server/mocks"
 	"testing"
+
+	"github.com/philippe-berto/pos-goexpert-challenges/client-server-api/server/mocks"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/assert"
