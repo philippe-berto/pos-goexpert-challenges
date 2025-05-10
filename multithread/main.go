@@ -7,6 +7,8 @@ import (
 	"log"
 	"net/http"
 	"time"
+
+	"github.com/philippe-berto/pos-goexpert-challenges/multithread/models"
 )
 
 const (
@@ -16,34 +18,9 @@ const (
 )
 
 type (
-	CepVC struct {
-		Cep         string `json:"cep"`
-		Logradouro  string `json:"logradouro"`
-		Complemento string `json:"complemento"`
-		Unidade     string `json:"unidade"`
-		Bairro      string `json:"bairro"`
-		Localidade  string `json:"localidade"`
-		Uf          string `json:"uf"`
-		Estado      string `json:"estado"`
-		Regiao      string `json:"regiao"`
-		Ibge        string `json:"ibge"`
-		Gia         string `json:"gia"`
-		Ddd         string `json:"ddd"`
-		Siafi       string `json:"siafi"`
-	}
-
-	CepBC struct {
-		Cep          string `json:"cep"`
-		State        string `json:"state"`
-		City         string `json:"city"`
-		Neighborhood string `json:"neighborhood"`
-		Street       string `json:"street"`
-		Service      string `json:"service"`
-	}
-
 	result struct {
-		cepBC  CepBC
-		cepVC  CepVC
+		cepBC  models.CepBC
+		cepVC  models.CepVC
 		source string
 		err    error
 	}
@@ -54,8 +31,8 @@ func main() {
 
 	ch := make(chan result)
 
-	go getFromViaCep(c, cepValue, ch)
-	go getFromBrasilCep(c, cepValue, ch)
+	go GetFromViaCep(c, cepValue, ch)
+	go GetFromBrasilCep(c, cepValue, ch)
 
 	select {
 	case result := <-ch:
@@ -89,7 +66,7 @@ func main() {
 	}
 }
 
-func getFromViaCep(c context.Context, cep string, ch chan<- result) {
+func GetFromViaCep(c context.Context, cep string, ch chan<- result) {
 	ctx, cancel := context.WithTimeout(c, viaCepTimeout)
 	defer cancel()
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "https://viacep.com.br/ws/"+cep+"/json", nil)
@@ -115,7 +92,7 @@ func getFromViaCep(c context.Context, cep string, ch chan<- result) {
 		return
 	}
 
-	cepVC := CepVC{}
+	cepVC := models.CepVC{}
 	err = json.Unmarshal(body, &cepVC)
 	if err != nil {
 		log.Println(err)
@@ -125,7 +102,7 @@ func getFromViaCep(c context.Context, cep string, ch chan<- result) {
 	ch <- result{cepVC: cepVC, source: "Via Cep", err: nil}
 }
 
-func getFromBrasilCep(c context.Context, cep string, ch chan<- result) {
+func GetFromBrasilCep(c context.Context, cep string, ch chan<- result) {
 	ctx, cancel := context.WithTimeout(c, brasilApiTimeout)
 	defer cancel()
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "https://brasilapi.com.br/api/cep/v1/"+cep, nil)
@@ -152,7 +129,7 @@ func getFromBrasilCep(c context.Context, cep string, ch chan<- result) {
 		return
 	}
 
-	cepBC := CepBC{}
+	cepBC := models.CepBC{}
 	err = json.Unmarshal(body, &cepBC)
 	if err != nil {
 		log.Println(err)
