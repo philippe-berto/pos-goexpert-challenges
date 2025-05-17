@@ -1,4 +1,4 @@
-package cep
+package service
 
 import (
 	"context"
@@ -30,14 +30,10 @@ type (
 		} `json:"errors"`
 	}
 
-	ResponseBody struct {
+	Response struct {
 		TempC float64 `json:"temp_C"`
 		TempF float64 `json:"temp_F"`
 		TempK float64 `json:"temp_K"`
-	}
-
-	Response struct {
-		ResponseBody ResponseBody `json:"response_body"`
 	}
 
 	Current struct {
@@ -53,9 +49,33 @@ type (
 	}
 )
 
-func (c *Cep) New(ctx context.Context) (*Cep, error) {
+func New(ctx context.Context) (*Cep, error) {
 	return &Cep{
 		ctx: ctx,
+	}, nil
+}
+
+func (c *Cep) GetWeather(cep string) (Response, error) {
+	if err := c.verifyCep(cep); err != nil {
+		log.Println(err)
+		return Response{}, fmt.Errorf("WRONG_FORMAT")
+	}
+
+	location, err := c.GetFromBrasilCep(cep)
+	if err != nil {
+		log.Println(err)
+		return Response{}, fmt.Errorf("NOT_FOUND")
+	}
+	temp, err := c.GetTemperature(location.City)
+	if err != nil {
+		log.Println(err)
+		return Response{}, fmt.Errorf("NOT_FOUND")
+	}
+
+	return Response{
+		TempC: temp.Current.TempC,
+		TempF: celsiusToFahrenheit(temp.Current.TempC),
+		TempK: celsiusToKelvin(temp.Current.TempC),
 	}, nil
 }
 
@@ -164,4 +184,11 @@ func (c *Cep) GetTemperature(city string) (WeatherResponse, error) {
 	}
 
 	return weatherResponse, nil
+}
+
+func celsiusToFahrenheit(celsius float64) float64 {
+	return celsius*1.8 + 32
+}
+func celsiusToKelvin(celsius float64) float64 {
+	return celsius + 273
 }

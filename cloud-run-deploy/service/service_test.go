@@ -1,4 +1,4 @@
-package cep
+package service
 
 import (
 	"context"
