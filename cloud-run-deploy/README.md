@@ -1,3 +1,22 @@
+## How to run
+
+```
+docker build -t cep-service -f build/Dockerfile .
+docker run --rm -p 8080:8080 cep-service
+```
+
+Then call
+
+```
+http://localhost:8080/{zip-code}
+```
+
+The Cloud Run Version is
+
+```
+https://pos-goexpert-challenges-818603360016.europe-west1.run.app/{zip-code}
+```
+
 ## Objective
 
 Develop a Go system that receives a Brazilian ZIP code (CEP), identifies the city, and returns the current weather (temperature in Celsius, Fahrenheit, and Kelvin). This system must be deployed on Google Cloud Run.
