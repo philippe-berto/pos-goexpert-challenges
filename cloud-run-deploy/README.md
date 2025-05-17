@@ -1,6 +1,7 @@
 ## How to run
 
 ```
+cd ./cloud-run-deploy
 docker build -t cep-service -f build/Dockerfile .
 docker run --rm -p 8080:8080 cep-service
 ```
