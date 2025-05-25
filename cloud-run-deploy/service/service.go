@@ -45,20 +45,24 @@ type (
 	}
 
 	Cep struct {
-		ctx context.Context
+		ctx        context.Context
+		needVerify bool
 	}
 )
 
-func New(ctx context.Context) (*Cep, error) {
+func New(ctx context.Context, needVerify bool) (*Cep, error) {
 	return &Cep{
-		ctx: ctx,
+		ctx:        ctx,
+		needVerify: needVerify,
 	}, nil
 }
 
 func (c *Cep) GetWeather(cep string) (Response, error) {
-	if err := c.verifyCep(cep); err != nil {
-		log.Println(err)
-		return Response{}, fmt.Errorf("WRONG_FORMAT")
+	if c.needVerify {
+		if err := c.verifyCep(cep); err != nil {
+			log.Println(err)
+			return Response{}, fmt.Errorf("WRONG_FORMAT")
+		}
 	}
 
 	location, err := c.GetFromBrasilCep(cep)

@@ -19,7 +19,7 @@ type (
 )
 
 func New(ctx context.Context) (*Handler, error) {
-	service, err := service.New(ctx)
+	service, err := service.New(ctx, true)
 	if err != nil {
 		panic(err)
 	}
