@@ -1,0 +1,28 @@
+version: "3.9"
+
+services:
+  service-a:
+    image: service-a
+    container_name: service-a
+    build:
+      context: serviceA
+      dockerfile: build/Dockerfile
+    ports:
+      - "8080:8080" # Service A port
+    networks:
+      - observability
+
+  service-b:
+    image: service-b
+    container_name: service-b
+    build:
+      context: serviceB
+      dockerfile: build/Dockerfile
+    ports:
+      - "8081:8081" # Service B port
+    networks:
+      - observability
+
+networks:
+  observability:
+    driver: bridge

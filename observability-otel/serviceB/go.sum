@@ -1,0 +1,8 @@
+github.com/caarlos0/env/v10 v10.0.0 h1:yIHUBZGsyqCnpTkbjk8asUlx6RFhhEs+h7TOBdgdzXA=
+github.com/caarlos0/env/v10 v10.0.0/go.mod h1:ZfulV76NvVPw3tm591U4SwL3Xx9ldzBP9aGxzeN7G18=
+github.com/philippe-berto/pos-goexpert-challenges/cloud-run-deploy v0.0.0-20250525123601-e7787a2bbc72 h1:UAoAwpLYWdTJvo1W5eyZtkAzCZuqnCdOdZotuh2DNI0=
+github.com/philippe-berto/pos-goexpert-challenges/cloud-run-deploy v0.0.0-20250525123601-e7787a2bbc72/go.mod h1:vGzVOK4X8cMIb50VrlQveXJY6YGQ8CsnamsAa6K8Dlc=
+github.com/philippe-berto/pos-goexpert-challenges/cloud-run-deploy v0.0.0-20250525124709-46dc24c2833c h1:IzFOIpiwfc+m4DQY1cDXx5avSKuqHw8jBZfv1jLRvtM=
+github.com/philippe-berto/pos-goexpert-challenges/cloud-run-deploy v0.0.0-20250525124709-46dc24c2833c/go.mod h1:5DAHu8Lhk6iWHypKU4u/BPImSvy9txOK0PzmIcZqeQw=
+github.com/philippe-berto/pos-goexpert-challenges/multithread v0.0.0-20250510190001-8b6f5ceca2be h1:xiBfGGXAYSjux5qHofRuCPFFt+mMgEx4XLBUKaJOF+Q=
+github.com/philippe-berto/pos-goexpert-challenges/multithread v0.0.0-20250510190001-8b6f5ceca2be/go.mod h1:Mm0PObkfs044fBfUqeTpGStuKN/GxCPrfxuS4b+FT5o=
