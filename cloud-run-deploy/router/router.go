@@ -12,19 +12,19 @@ type route struct {
 	handler http.HandlerFunc
 }
 
-type router struct {
+type Router struct {
 	routes []route
 }
 
-func New(ctx context.Context) *router {
-	router := &router{
+func New(ctx context.Context) *Router {
+	router := &Router{
 		routes: []route{},
 	}
 
 	return router
 }
 
-func (r *router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	for _, route := range r.routes {
 		params, ok := match(route.pattern, req.URL.Path)
 		if ok && req.Method == route.method {
@@ -37,7 +37,7 @@ func (r *router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	http.NotFound(w, req)
 }
 
-func (r *router) AddRoute(method, path string, handler http.HandlerFunc) {
+func (r *Router) AddRoute(method, path string, handler http.HandlerFunc) {
 	r.routes = append(r.routes, route{
 		method:  method,
 		pattern: path,

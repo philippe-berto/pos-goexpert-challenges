@@ -15,7 +15,7 @@ import (
 
 const (
 	brasilApiTimeout = 5 * time.Second // 5 seconds
-	key              = "eab938e385494c25bfe193525251005"
+	key              = "a3261b2cece24bacbb8134302252305"
 )
 
 type (
