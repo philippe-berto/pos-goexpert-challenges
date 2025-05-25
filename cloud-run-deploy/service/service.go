@@ -15,7 +15,6 @@ import (
 
 const (
 	brasilApiTimeout = 5 * time.Second // 5 seconds
-	key              = "a3261b2cece24bacbb8134302252305"
 )
 
 type (
@@ -47,13 +46,15 @@ type (
 	Cep struct {
 		ctx        context.Context
 		needVerify bool
+		wAPIKey    string
 	}
 )
 
-func New(ctx context.Context, needVerify bool) (*Cep, error) {
+func New(ctx context.Context, wAPIKey string, needVerify bool) (*Cep, error) {
 	return &Cep{
 		ctx:        ctx,
 		needVerify: needVerify,
+		wAPIKey:    wAPIKey,
 	}, nil
 }
 
@@ -154,7 +155,7 @@ func (c *Cep) GetFromBrasilCep(cep string) (models.CepBC, error) {
 
 func (c *Cep) GetTemperature(city string) (WeatherResponse, error) {
 	encodedCity := url.QueryEscape(city)
-	url := fmt.Sprintf("https://api.weatherapi.com/v1/current.json?key=%s&q=%s&aqi=no", key, encodedCity)
+	url := fmt.Sprintf("https://api.weatherapi.com/v1/current.json?key=%s&q=%s&aqi=no", c.wAPIKey, encodedCity)
 
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {

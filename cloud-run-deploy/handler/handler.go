@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/philippe-berto/pos-goexpert-challenges/cloud-run-deploy/config"
 	"github.com/philippe-berto/pos-goexpert-challenges/cloud-run-deploy/service"
 )
 
@@ -19,7 +20,12 @@ type (
 )
 
 func New(ctx context.Context) (*Handler, error) {
-	service, err := service.New(ctx, true)
+	config, err := config.LoadConfig()
+	if err != nil {
+		panic(err)
+	}
+
+	service, err := service.New(ctx, config.WAPI_KEY, true)
 	if err != nil {
 		panic(err)
 	}
