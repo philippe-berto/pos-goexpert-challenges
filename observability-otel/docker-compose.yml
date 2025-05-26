@@ -1,27 +1,89 @@
 version: "3.9"
 
 services:
-  service-a:
-    image: service-a
-    container_name: service-a
-    build:
-      context: serviceA
-      dockerfile: build/Dockerfile
+  jaeger:
+    container_name: jaeger
+    image: jaegertracing/all-in-one:latest
+    restart: always
+    container_name: jaeger
     ports:
-      - "8080:8080" # Service A port
+      - "14268" # Jaeger HTTP
+      - "14250" # Jaeger gRPC
+      - "16686:16686" # Jaeger UI
+    networks:
+      - observability
+    depends_on:
+      - otel-collector
+
+  prometheus:
+    container_name: prometheus
+    image: prom/prometheus:latest
+    restart: always
+    ports:
+      - "9090:9090" # Prometheus UI
+    volumes:
+      - ./.docker/prometheus-config.yaml:/etc/prometheus/prometheus.yaml
+    networks:
+      - observability
+    depends_on:
+      - otel-collector
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.72.0
+    container_name: otel-collector
+    ports:
+      - "4317:4317" # OTLP gRPC
+      - "8888:8888" # Prometheus metrics
+      - "8889:8889" # Prometheus metrics
+    volumes:
+      - ./.docker/otel-collector-config.yaml:/etc/otel-collector-config.yaml
+    command: ["--config=etc/otel-collector-config.yaml"]
     networks:
       - observability
 
-  service-b:
-    image: service-b
-    container_name: service-b
+  validation-cep:
+    image: validation-cep
+    container_name: validation-cep
+    build:
+      context: serviceA
+      dockerfile: build/Dockerfile
+    environment:
+      - TITLE=Validation CEP
+      - CONTENT=Service A Validation CEP
+      - WEATHER_SERVICE_URL=http://weather-fetcher:8081
+      - REQUEST_NAME_OTEL=service-a-validation-cep-request
+      - OTEL_SERVICE_NAME=service-a-validation-cep
+      - OTEL_EXPORTER_OTLP_ENDPOINT=otel-collector:4317
+      - HTTP_PORT=8080
+    ports:
+      - "8080:8080"
+    networks:
+      - observability
+    depends_on:
+      - otel-collector
+      - weather-fetcher
+      - prometheus
+
+  weather-fetcher:
+    image: weather-fetcher
+    container_name: weather-fetcher
     build:
       context: serviceB
       dockerfile: build/Dockerfile
+    environment:
+      - TITLE=Weather Service
+      - CONTENT=Service B Weather Service
+      - REQUEST_NAME_OTEL=service-b-weather-fetcher-request
+      - OTEL_SERVICE_NAME=service-b-weather-fetcher
+      - OTEL_EXPORTER_OTLP_ENDPOINT=otel-collector:4317
+      - HTTP_PORT=8081
     ports:
-      - "8081:8081" # Service B port
+      - "8081:8081"
     networks:
       - observability
+    depends_on:
+      - otel-collector
+      - prometheus
 
 networks:
   observability:

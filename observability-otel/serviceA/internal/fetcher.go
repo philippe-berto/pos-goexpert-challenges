@@ -9,12 +9,15 @@ import (
 	"net/http"
 
 	"github.com/philippe-berto/pos-goexpert-challenges/cloud-run-deploy/service"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/propagation"
 )
 
 type (
 	Fetcher struct {
 		ctx         context.Context
 		serviceBUrl string
+		carrier     propagation.HeaderCarrier
 	}
 	ServiceBError struct {
 		Message    string
@@ -22,10 +25,11 @@ type (
 	}
 )
 
-func New(ctx context.Context, serviceBUrl string) *Fetcher {
+func New(ctx context.Context, serviceBUrl string, carrier propagation.HeaderCarrier) *Fetcher {
 	return &Fetcher{
 		ctx:         ctx,
 		serviceBUrl: serviceBUrl,
+		carrier:     carrier,
 	}
 }
 
@@ -50,6 +54,9 @@ func (f *Fetcher) Fetch(cep string) (service.Response, *ServiceBError) {
 	req.Header.Set("Content-Type", "application/json")
 
 	client := &http.Client{}
+
+	otel.GetTextMapPropagator().Inject(f.ctx, f.carrier)
+
 	res, err := client.Do(req)
 	if err != nil {
 		log.Println(err)
