@@ -1,4 +1,4 @@
-# Temperature System by ZIP Code with OTEL and Zipkin
+# Temperature System by ZIP Code with OTEL tracing
 
 ## Objective
 
