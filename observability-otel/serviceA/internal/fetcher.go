@@ -13,27 +13,12 @@ import (
 	"go.opentelemetry.io/otel/propagation"
 )
 
-type (
-	Fetcher struct {
-		ctx         context.Context
-		serviceBUrl string
-		carrier     propagation.HeaderCarrier
-	}
-	ServiceBError struct {
-		Message    string
-		StatusCode int
-	}
-)
-
-func New(ctx context.Context, serviceBUrl string, carrier propagation.HeaderCarrier) *Fetcher {
-	return &Fetcher{
-		ctx:         ctx,
-		serviceBUrl: serviceBUrl,
-		carrier:     carrier,
-	}
+type ServiceBError struct {
+	Message    string
+	StatusCode int
 }
 
-func (f *Fetcher) Fetch(cep string) (service.Response, *ServiceBError) {
+func Fetch(ctx context.Context, cep, serviceBUrl string) (service.Response, *ServiceBError) {
 	payload := map[string]string{
 		"cep": cep,
 	}
@@ -44,7 +29,7 @@ func (f *Fetcher) Fetch(cep string) (service.Response, *ServiceBError) {
 			StatusCode: http.StatusInternalServerError,
 		}
 	}
-	req, err := http.NewRequest(http.MethodPost, f.serviceBUrl, bytes.NewBuffer(payloadBytes))
+	req, err := http.NewRequest(http.MethodPost, serviceBUrl, bytes.NewBuffer(payloadBytes))
 	if err != nil {
 		return service.Response{}, &ServiceBError{
 			Message:    "failed to create request",
@@ -53,9 +38,9 @@ func (f *Fetcher) Fetch(cep string) (service.Response, *ServiceBError) {
 	}
 	req.Header.Set("Content-Type", "application/json")
 
-	client := &http.Client{}
+	otel.GetTextMapPropagator().Inject(ctx, propagation.HeaderCarrier(req.Header))
 
-	otel.GetTextMapPropagator().Inject(f.ctx, f.carrier)
+	client := &http.Client{}
 
 	res, err := client.Do(req)
 	if err != nil {

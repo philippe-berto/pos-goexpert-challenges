@@ -4,3 +4,13 @@ scrape_configs:
     static_configs:
       - targets: ["otel-collector:8888"]
       - targets: ["otel-collector:8889"]
+
+  - job_name: "validation-cep"
+    scrap-interval: 10s
+    static_configs:
+      - targets: ["otel-collector:8080"]
+
+  - job_name: "weather-fetcher"
+    scrap-interval: 10s
+    static_configs:
+      - targets: ["otel-collector:8081"]

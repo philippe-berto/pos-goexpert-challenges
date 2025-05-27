@@ -33,6 +33,7 @@ services:
     container_name: otel-collector
     ports:
       - "4317:4317" # OTLP gRPC
+      - "4318:4318" # OTLP HTTP
       - "8888:8888" # Prometheus metrics
       - "8889:8889" # Prometheus metrics
     volumes:
@@ -41,6 +42,17 @@ services:
     networks:
       - observability
 
+  grafana:
+    container_name: grafana
+    image: grafana/grafana:latest
+    restart: always
+    ports:
+      - "3000:3000" # Grafana UI
+    networks:
+      - observability
+    depends_on:
+      - prometheus
+
   validation-cep:
     image: validation-cep
     container_name: validation-cep
@@ -48,12 +60,11 @@ services:
       context: serviceA
       dockerfile: build/Dockerfile
     environment:
-      - TITLE=Validation CEP
-      - CONTENT=Service A Validation CEP
       - WEATHER_SERVICE_URL=http://weather-fetcher:8081
       - REQUEST_NAME_OTEL=service-a-validation-cep-request
       - OTEL_SERVICE_NAME=service-a-validation-cep
-      - OTEL_EXPORTER_OTLP_ENDPOINT=otel-collector:4317
+      - OTEL_APP_NAME=otel-challenge
+      - OTEL_EXPORTER_OTLP_ENDPOINT=otel-collector:4318
       - HTTP_PORT=8080
     ports:
       - "8080:8080"
@@ -71,11 +82,10 @@ services:
       context: serviceB
       dockerfile: build/Dockerfile
     environment:
-      - TITLE=Weather Service
-      - CONTENT=Service B Weather Service
       - REQUEST_NAME_OTEL=service-b-weather-fetcher-request
       - OTEL_SERVICE_NAME=service-b-weather-fetcher
-      - OTEL_EXPORTER_OTLP_ENDPOINT=otel-collector:4317
+      - OTEL_APP_NAME=otel-challenge
+      - OTEL_EXPORTER_OTLP_ENDPOINT=otel-collector:4318
       - HTTP_PORT=8081
     ports:
       - "8081:8081"

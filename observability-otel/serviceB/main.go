@@ -17,14 +17,13 @@ import (
 	"github.com/philippe-berto/pos-goexpert-challenges/observability-otel/serviceB/config"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
-	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
 	"go.opentelemetry.io/otel/trace"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 )
 
 type (
@@ -38,47 +37,37 @@ type (
 	}
 )
 
-func initProvider(serviceName, collectorURL string) (func(context.Context) error, error) {
-	ctx := context.Background()
-
-	res, err := resource.New(ctx,
-		resource.WithAttributes(
-			semconv.ServiceName(serviceName),
+func initProvider(ctx context.Context, serviceName, collectorURL, appName string) (func(context.Context) error, error) {
+	exporter, err := otlptrace.New(ctx,
+		otlptracehttp.NewClient(
+			otlptracehttp.WithInsecure(),
+			otlptracehttp.WithEndpoint(collectorURL),
 		),
 	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create resource: %v", err)
+		return nil, fmt.Errorf("Otel tracer: Could not setup exporter: %w", err)
 	}
 
-	ctx, cancel := context.WithCancel(ctx)
-	defer cancel()
-
-	conn, err := grpc.DialContext(ctx, collectorURL,
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
-		grpc.WithBlock(),
+	resources, err := resource.New(ctx,
+		resource.WithAttributes(
+			attribute.String("service.name", serviceName),
+			attribute.String("application", appName),
+		),
 	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to connect to collector: %v", err)
+		return nil, fmt.Errorf("Otel tracer: Could not setup resources: %w", err)
 	}
 
-	traceExporter, err := otlptracegrpc.New(ctx, otlptracegrpc.WithGRPCConn(conn))
-	if err != nil {
-		return nil, fmt.Errorf("failed to create trace exporter: %v", err)
-	}
-
-	bsp := sdktrace.NewBatchSpanProcessor(traceExporter)
-	traceProvider := sdktrace.NewTracerProvider(
+	tracer := sdktrace.NewTracerProvider(
 		sdktrace.WithSampler(sdktrace.AlwaysSample()),
-		sdktrace.WithResource(res),
-		sdktrace.WithSpanProcessor(bsp),
+		sdktrace.WithSpanProcessor(sdktrace.NewBatchSpanProcessor(exporter)),
+		sdktrace.WithResource(resources),
 	)
 
-	otel.SetTracerProvider(traceProvider)
+	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}))
+	otel.SetTracerProvider(tracer)
 
-	otel.SetTextMapPropagator(propagation.TraceContext{})
-
-	return traceProvider.Shutdown, nil
-
+	return exporter.Shutdown, nil
 }
 
 func main() {
@@ -89,14 +78,11 @@ func main() {
 	}
 
 	// Greacefully shutdown the service
-	sigCh := make(chan os.Signal, 1)
-	signal.Notify(sigCh, os.Interrupt)
-
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer cancel()
 
 	// Initialize OpenTelemetry
-	shutdown, err := initProvider(cfg.OtelServiceName, cfg.OtelExporterOtlpEndpoint)
+	shutdown, err := initProvider(ctx, cfg.OtelServiceName, cfg.OtelExporterOtlpEndpoint, cfg.OtelAppName)
 	if err != nil {
 		log.Fatalf("Error initializing OpenTelemetry: %v", err)
 	}
@@ -134,26 +120,19 @@ func main() {
 		}
 	}()
 
-	select {
-	case <-sigCh:
-		log.Println("Received shutdown signal, shutting down gracefully...")
-		if err := server.Shutdown(ctx); err != nil {
-			log.Fatalf("Error shutting down server: %v", err)
-		}
-		log.Println("Server shut down gracefully")
-	case <-ctx.Done():
-		log.Println("Context done, shutting down server...")
-		if err := server.Shutdown(ctx); err != nil {
-			log.Fatalf("Error shutting down server: %v", err)
-		}
-		log.Println("Server shut down gracefully")
+	<-ctx.Done()
+	log.Println("Context done, shutting down server...")
+	if err := server.Shutdown(context.Background()); err != http.ErrServerClosed {
+		log.Fatalf("Error shutting down server: %v", err)
 	}
+	log.Println("Server shut down gracefully")
 	log.Println("Exiting application")
-	os.Exit(0)
 }
 
 func (wh *WeaterHandler) getWeather(w http.ResponseWriter, req *http.Request) {
+	carrier := propagation.HeaderCarrier(req.Header)
 	ctx := req.Context()
+	ctx = otel.GetTextMapPropagator().Extract(ctx, carrier)
 
 	tracer := otel.GetTracerProvider().Tracer(wh.RequestNameOtel, trace.WithInstrumentationVersion("semver:"))
 
